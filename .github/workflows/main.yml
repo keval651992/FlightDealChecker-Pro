@@ -5,9 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  # Optional: Run automatically every day at 8 AM UTC
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 8 * * *' # Runs automatically every day at 8 AM UTC
 
 jobs:
   check-deals:
@@ -31,4 +30,4 @@ jobs:
       env:
         FLIGHT_API_KEY: ${{ secrets.FLIGHT_API_KEY }}
       run: |
-        PYTHONPATH=. pytest -v
+        PYTHONPATH=. pytest -s -v -W ignore

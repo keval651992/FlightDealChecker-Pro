@@ -10,6 +10,7 @@ def flight_client():
 
 @pytest.mark.parametrize("origin, destination", [("YYC", "AMD")])
 def test_flight_deals_contract_and_budget(flight_client, origin, destination):
+    
   # 1. Fetch raw flight data
   raw_offers = flight_client.search_flights(origin, destination)
   assert len(raw_offers) > 0, "No flight offers returned from search."
