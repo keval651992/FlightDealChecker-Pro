@@ -8,31 +8,41 @@ load_dotenv()
 class FlightClient:
 
   def __init__(self):
+    # Pulls the API key from environment variables (local .env or GitHub Actions Secrets)
     self.api_key = os.getenv("FLIGHT_API_KEY", "mock_key")
-    self.base_url = os.getenv(
-        "FLIGHT_API_URL", "https://api.example-flights.com/v1"
-    )
+    # Replace with the actual host endpoint of the RapidAPI provider you subscribe to
+    self.api_host = os.getenv("FLIGHT_API_HOST", "skyscanner-api-example.p.rapidapi.com")
 
-  def search_flights(self, origin: str, destination: str) -> list[dict]:
-    """Fetches flight offers.
+  def search_flights(self, origin: str, destination: str, departure_date: str) -> list[dict]:
+    """Fetches real-time flight offers using RapidAPI,
 
-    Falls back to structured mock data if live API is unavailable.
+    falling back to synchronized mock records if credits run out or the network fails.
     """
-    try:
-      # Live API integration attempt (e.g., Skyscanner / Amadeus / RapidAPI)
-      headers = {"X-Api-Key": self.api_key}
-      response = requests.get(
-          f"{self.base_url}/search",
-          params={"origin": origin, "destination": destination},
-          headers=headers,
-          timeout=5,
-      )
-      if response.status_code == 200:
-        return response.json()
-    except Exception:
-      pass
+    # 1. Attempt Real-Time API Call if a valid API key is present
+    if self.api_key and self.api_key != "mock_key":
+      try:
+        url = f"https://{self.api_host}/v2/flights/search"
+        headers = {
+            "X-RapidAPI-Key": self.api_key,
+            "X-RapidAPI-Host": self.api_host,
+        }
+        params = {
+            "origin": origin,
+            "destination": destination,
+            "date": departure_date,
+        }
+        
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        if response.status_code == 200:
+          data = response.json()
+          live_flights = data.get("flights", [])
+          if live_flights:
+            print(" Success: Fetched live data from RapidAPI!")
+            return live_flights
+      except Exception as e:
+        print(f"⚠️ Live API call failed or rate-limited ({e}). Falling back to mock data.")
 
-    # Simulated Mock Flight Deals (e.g., tracking Calgary (YYC) to Ahmedabad (AMD) or regional trips)
+    # 2. Graceful Mock Fallback (Guarantees 100% uptime for tests and CI/CD)
     mock_flight_database = [
         {
             "flight_id": "FL-101",
@@ -54,6 +64,25 @@ class FlightClient:
             "departure_date": "2026-12-15",
             "booking_url": "https://example.com/book/102",
         },
+        {
+            "flight_id": "FL-103",
+            "origin": "YYC",
+            "destination": "AMD",
+            "airline": "KLM",
+            "price_cad": 1280.00,
+            "currency": "CAD",
+            "departure_date": "2026-12-20",
+            "booking_url": "https://example.com/book/103",
+        },
     ]
 
-    return mock_flight_database
+    # Filter mock records matching the requested parameters
+    filtered_flights = [
+        f
+        for f in mock_flight_database
+        if f["origin"] == origin
+        and f["destination"] == destination
+        and f["departure_date"] == departure_date
+    ]
+
+    return filtered_flights
