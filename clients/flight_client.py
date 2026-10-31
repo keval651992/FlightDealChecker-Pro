@@ -65,14 +65,14 @@ class FlightClient:
             "booking_url": "https://example.com/book/102",
         },
         {
-            "flight_id": "FL-103",
+            "flight_id": "FL-104",
             "origin": "YYC",
             "destination": "AMD",
-            "airline": "KLM",
-            "price_cad": 1280.00,
+            "airline": "WestJet",
+            "price_cad": 1399.00,
             "currency": "CAD",
-            "departure_date": "2026-12-20",
-            "booking_url": "https://example.com/book/103",
+            "departure_date": "2026-12-12",
+            "booking_url": "https://example.com/book/104",
         },
     ]
 
