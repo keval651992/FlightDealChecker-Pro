@@ -8,11 +8,11 @@ def flight_client():
   return FlightClient()
 
 
-@pytest.mark.parametrize("origin, destination", [("YYC", "AMD")])
-def test_flight_deals_contract_and_budget(flight_client, origin, destination):
+@pytest.mark.parametrize("origin, destination, target_date", [("YYC", "AMD","2026-12-12"),],)
+def test_flight_deals_contract_and_budget(flight_client, origin, destination, target_date):
     
   # 1. Fetch raw flight data
-  raw_offers = flight_client.search_flights(origin, destination)
+  raw_offers = flight_client.search_flights(origin, destination,target_date)
   assert len(raw_offers) > 0, "No flight offers returned from search."
 
   target_budget_cad = 1500.00  # Your maximum desired price threshold
@@ -24,8 +24,10 @@ def test_flight_deals_contract_and_budget(flight_client, origin, destination):
 
     assert validated_offer.origin == origin
     assert validated_offer.destination == destination
-
+    assert validated_offer.departure_date == target_date
+    
     print(
+        f"Date: {validated_offer.departure_date}"
         f"Checked {validated_offer.airline}: ${validated_offer.price_cad}"
         f" {validated_offer.currency}"
     )
